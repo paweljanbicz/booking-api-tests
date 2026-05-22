@@ -9,18 +9,39 @@ def get_auth():
     })
     return resp.json()["token"]
 
+def create_booking():
+    resp = requests.post(f'{BASE_URL}/booking',
+                         json={"firstname": "Eric",
+                               "lastname": "Smith",
+                               "totalprice": 351,
+                               "depositpaid": False,
+                               "bookingdates": {
+                                   "checkin": "2025-02-15",
+                                   "checkout": "2025-07-12"
+                               },
+                               "additionalneeds": "Breakfast"})
+    return resp.json()["bookingid"]
+
 class TestBookingCRUD:
     def test_get_booking_by_id(self):
-        resp = requests.get(f'{BASE_URL}/booking/1')
+        print(get_auth())
+
+        resp = requests.get(f'{BASE_URL}/booking/12')
 
         assert resp.status_code == 200
         body = resp.json()
-        assert body['firstname'] == "Eric"
+        assert body['firstname'] == "John"
         assert body['lastname'] == "Smith"
-        assert body['totalprice'] == 351
+        assert body['totalprice'] == 111
 
     def test_get_all_bookings(self):
-        pass
+        resp = requests.get(f'{BASE_URL}/booking')
+
+        assert resp.status_code == 200
+        bookings = resp.json()
+        assert len(bookings) > 0
+        assert isinstance(bookings, list)
+        assert 'bookingid' in bookings[0]
 
     def test_get_not_existing_booking_return_404(self):
         pass
