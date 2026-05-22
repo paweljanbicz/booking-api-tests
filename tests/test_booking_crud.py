@@ -66,12 +66,53 @@ class TestBookingCRUD:
 
         assert resp.status_code in (400, 422, 500) #API should return 400
 
-
     def test_update_booking(self):
-        pass
+        token = get_auth()
+        booking_id = create_booking()["bookingid"]
+        updated = {
+            "firstname": "Adam",
+            "lastname": "Jonson",
+            "totalprice": 999,
+            "depositpaid": False,
+            "bookingdates": {
+                "checkin": "2026-02-15",
+                "checkout": "2027-01-01"
+            },
+            "additionalneeds": "None"
+        }
+
+        resp = requests.put(f'{BASE_URL}/booking/{booking_id}',
+                            json=updated,
+                            headers={"Cookie": f"token={token}"})
+        body = resp.json()
+        print(body)
+        assert resp.status_code == 200
+        assert body['firstname'] == "Adam"
+        assert body['lastname'] == "Jonson"
+        assert body['totalprice'] == 999
+        assert body['depositpaid'] == False
+
 
     def test_put_is_idempontet(self):
-        pass
+        token = get_auth()
+        booking_id = create_booking()["bookingid"]
+        updated = {
+            "firstname": "Adam",
+            "lastname": "Jonson",
+            "totalprice": 999,
+            "depositpaid": False,
+            "bookingdates": {
+                "checkin": "2026-02-15",
+                "checkout": "2027-01-01"
+            },
+            "additionalneeds": "None"
+        }
+
+        resp1 = requests.put(f'{BASE_URL}/booking/{booking_id}', json=updated, headers={"Cookie": f"token={token}"})
+        resp2 = requests.put(f'{BASE_URL}/booking/{booking_id}', json=updated, headers={"Cookie": f"token={token}"})
+        resp3 = requests.put(f'{BASE_URL}/booking/{booking_id}', json=updated, headers={"Cookie": f"token={token}"})
+        assert resp1.status_code == resp2.status_code == resp3.status_code == 200
+        assert resp1.json() == resp2.json() == resp3.json()
 
     def test_partial_booking_update_patch(self):
         pass
