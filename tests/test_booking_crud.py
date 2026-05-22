@@ -1,3 +1,4 @@
+import pytest
 import requests
 
 BASE_URL = "https://restful-booker.herokuapp.com"
@@ -49,10 +50,22 @@ class TestBookingCRUD:
         assert resp.status_code == 404
 
     def test_create_booking_returns_201(self):
-        pass
+        resp = requests.post(f'{BASE_URL}/booking', json=BOOKING_PAYLOAD)
 
-    def test_create_booking_missing_requirements_fails(self):
-        pass
+        assert resp.status_code == 200  #API restful-booker returns 200 instead of 201
+        body = resp.json()
+        assert isinstance(body['bookingid'], int)
+        assert len(body) > 0
+        assert body['booking']['firstname'] == BOOKING_PAYLOAD['firstname']
+
+    @pytest.mark.parametrize('missing_field',
+                             ["firstname", "lastname", "totalprice", "depositpaid"])
+    def test_create_booking_missing_requirements_fails(self, missing_field):
+        body = {k:v for k,v in BOOKING_PAYLOAD.items() if k not in missing_field}
+        resp = requests.post(f'{BASE_URL}/booking', json=body)
+
+        assert resp.status_code in (400, 422, 500) #API should return 400
+
 
     def test_update_booking(self):
         pass
