@@ -20,19 +20,19 @@ def create_booking():
                                    "checkout": "2025-07-12"
                                },
                                "additionalneeds": "Breakfast"})
-    return resp.json()["bookingid"]
+    return resp.json()
 
 class TestBookingCRUD:
     def test_get_booking_by_id(self):
-        print(get_auth())
+        booking_id = create_booking()["bookingid"]
 
-        resp = requests.get(f'{BASE_URL}/booking/12')
+        resp = requests.get(f'{BASE_URL}/booking/{booking_id}')
 
         assert resp.status_code == 200
         body = resp.json()
-        assert body['firstname'] == "John"
+        assert body['firstname'] == "Eric"
         assert body['lastname'] == "Smith"
-        assert body['totalprice'] == 111
+        assert body['totalprice'] == 351
 
     def test_get_all_bookings(self):
         resp = requests.get(f'{BASE_URL}/booking')
@@ -44,7 +44,8 @@ class TestBookingCRUD:
         assert 'bookingid' in bookings[0]
 
     def test_get_not_existing_booking_return_404(self):
-        pass
+        resp = requests.get(f'{BASE_URL}/booking/999999999999999')
+        assert resp.status_code == 404
 
     def test_create_booking_returns_201(self):
         pass
