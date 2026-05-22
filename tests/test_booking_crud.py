@@ -125,4 +125,11 @@ class TestBookingCRUD:
         assert resp.json()['firstname'] == "Adam"
 
     def test_delete_booking(self):
-        pass
+        token = get_auth()
+        booking_id = create_booking()["bookingid"]
+        resp = requests.delete(f'{BASE_URL}/booking/{booking_id}',
+                               headers={"Cookie": f"token={token}"})
+        assert resp.status_code == 201  #API should return 204 status code
+
+        get_resp = requests.get(f'{BASE_URL}/booking/{booking_id}')
+        assert get_resp.status_code == 404
