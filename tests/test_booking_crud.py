@@ -1,6 +1,16 @@
 import requests
 
 BASE_URL = "https://restful-booker.herokuapp.com"
+BOOKING_PAYLOAD = {
+    "firstname": "Eric",
+    "lastname": "Smith",
+    "totalprice": 351,
+    "depositpaid": False,
+    "bookingdates": {
+        "checkin": "2025-02-15",
+        "checkout": "2025-07-12"
+    },
+    "additionalneeds": "Breakfast"}
 
 def get_auth():
     resp = requests.post(f'{BASE_URL}/auth', json={
@@ -10,16 +20,7 @@ def get_auth():
     return resp.json()["token"]
 
 def create_booking():
-    resp = requests.post(f'{BASE_URL}/booking',
-                         json={"firstname": "Eric",
-                               "lastname": "Smith",
-                               "totalprice": 351,
-                               "depositpaid": False,
-                               "bookingdates": {
-                                   "checkin": "2025-02-15",
-                                   "checkout": "2025-07-12"
-                               },
-                               "additionalneeds": "Breakfast"})
+    resp = requests.post(f'{BASE_URL}/booking', json=BOOKING_PAYLOAD)
     return resp.json()
 
 class TestBookingCRUD:
