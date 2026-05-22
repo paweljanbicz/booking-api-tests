@@ -115,7 +115,14 @@ class TestBookingCRUD:
         assert resp1.json() == resp2.json() == resp3.json()
 
     def test_partial_booking_update_patch(self):
-        pass
+        token = get_auth()
+        booking_id = create_booking()["bookingid"]
+        resp = requests.patch(f'{BASE_URL}/booking/{booking_id}',
+                            headers={"Cookie": f"token={token}"},
+                            json = {"firstname": "Adam"})
+
+        assert resp.status_code == 200
+        assert resp.json()['firstname'] == "Adam"
 
     def test_delete_booking(self):
         pass
