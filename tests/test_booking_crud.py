@@ -131,5 +131,9 @@ class TestBookingCRUD:
                                headers={"Cookie": f"token={token}"})
         assert resp.status_code == 201  #API should return 204 status code
 
-        get_resp = requests.get(f'{BASE_URL}/booking/{booking_id}')
+        get_resp = requests.get(f'{BASE_URL}/booking/{booking_id}',
+                                headers={"Cookie": f"token={token}"})
         assert get_resp.status_code == 404
+
+        delete_resp = requests.delete(f'{BASE_URL}/booking/{booking_id}')
+        assert delete_resp.status_code == 403 #API should return 404 or 410 status code
