@@ -61,7 +61,7 @@ class TestBookingCRUD:
     @pytest.mark.parametrize('missing_field',
                              ["firstname", "lastname", "totalprice", "depositpaid"])
     def test_create_booking_missing_requirements_fails(self, missing_field):
-        body = {k:v for k,v in BOOKING_PAYLOAD.items() if k not in missing_field}
+        body = {k:v for k,v in BOOKING_PAYLOAD.items() if k != missing_field}
         resp = requests.post(f'{BASE_URL}/booking', json=body)
 
         assert resp.status_code in (400, 422, 500) #API should return 400
@@ -85,7 +85,6 @@ class TestBookingCRUD:
                             json=updated,
                             headers={"Cookie": f"token={token}"})
         body = resp.json()
-        print(body)
         assert resp.status_code == 200
         assert body['firstname'] == "Adam"
         assert body['lastname'] == "Jonson"
@@ -93,7 +92,7 @@ class TestBookingCRUD:
         assert body['depositpaid'] == False
 
 
-    def test_put_is_idempontet(self):
+    def test_put_is_idempotent(self):
         token = get_auth()
         booking_id = create_booking()["bookingid"]
         updated = {
