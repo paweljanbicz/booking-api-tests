@@ -36,11 +36,11 @@ class TestBookingCRUD:
 
     @pytest.mark.parametrize('missing_field',
                              ["firstname", "lastname", "totalprice", "depositpaid"])
-    def test_create_booking_missing_requirements_fails(self, missing_field):
+    def test_create_booking_missing_requirements_returns_500(self, missing_field):
         body = {k:v for k,v in DEFAULT_BOOKING_PAYLOAD.items() if k != missing_field}
         resp = requests.post(f'{BASE_URL}/booking', json=body)
 
-        assert resp.status_code in (400, 422, 500) #API should return 400
+        assert resp.status_code == 500 #API should return 400
 
     def test_update_booking(self, auth_token, created_booking):
         updated = {
