@@ -1,4 +1,5 @@
 from typing import Any
+from booking_client import BASE_URL
 import requests
 import pytest
 
@@ -13,8 +14,6 @@ DEFAULT_BOOKING_PAYLOAD: dict[str, Any] = {
     },
     "additionalneeds": "Breakfast",
 }
-
-BASE_URL = "https://restful-booker.herokuapp.com"
 
 @pytest.fixture(scope="session")
 def auth_token():
