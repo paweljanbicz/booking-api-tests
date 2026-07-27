@@ -1,10 +1,10 @@
 import pytest
-import requests
-from conftest import create_test_booking, BASE_URL, DEFAULT_BOOKING_PAYLOAD
+from conftest import DEFAULT_BOOKING_PAYLOAD
+
 
 class TestBookingCRUD:
-    def test_get_booking_by_id(self, created_booking):
-        resp = requests.get(f'{BASE_URL}/booking/{created_booking}')
+    def test_get_booking_by_id(self, api_client, created_booking):
+        resp = api_client.get_booking(created_booking)
 
         assert resp.status_code == 200
         body = resp.json()
@@ -12,8 +12,8 @@ class TestBookingCRUD:
         assert body['lastname'] == "Smith"
         assert body['totalprice'] == 351
 
-    def test_get_all_bookings(self):
-        resp = requests.get(f'{BASE_URL}/booking')
+    def test_get_all_bookings(self, api_client):
+        resp = api_client.get_all_bookings()
 
         assert resp.status_code == 200
         bookings = resp.json()
@@ -21,28 +21,28 @@ class TestBookingCRUD:
         assert isinstance(bookings, list)
         assert 'bookingid' in bookings[0]
 
-    def test_get_not_existing_booking_return_404(self):
-        resp = requests.get(f'{BASE_URL}/booking/999999999999999')
+    def test_get_not_existing_booking_return_404(self, api_client):
+        resp = api_client.get_booking(999999999999999)
         assert resp.status_code == 404
 
-    def test_create_booking_returns_201(self):
-        resp = requests.post(f'{BASE_URL}/booking', json=DEFAULT_BOOKING_PAYLOAD)
-
-        assert resp.status_code == 200  #API restful-booker returns 200 instead of 201
+    def test_create_booking_returns_201(self, authenticated_client):
+        resp = authenticated_client.create_booking(DEFAULT_BOOKING_PAYLOAD)
+        assert resp.status_code == 200  # API restful-booker returns 200 instead of 201
         body = resp.json()
         assert isinstance(body['bookingid'], int)
         assert len(body) > 0
         assert body['booking']['firstname'] == DEFAULT_BOOKING_PAYLOAD['firstname']
+        authenticated_client.delete_booking(body['bookingid'])
 
     @pytest.mark.parametrize('missing_field',
                              ["firstname", "lastname", "totalprice", "depositpaid"])
-    def test_create_booking_missing_requirements_returns_500(self, missing_field):
-        body = {k:v for k,v in DEFAULT_BOOKING_PAYLOAD.items() if k != missing_field}
-        resp = requests.post(f'{BASE_URL}/booking', json=body)
+    def test_create_booking_missing_requirements_returns_500(self, api_client, missing_field):
+        body = {k: v for k, v in DEFAULT_BOOKING_PAYLOAD.items() if k != missing_field}
+        resp = api_client.create_booking(body)
 
-        assert resp.status_code == 500 #API should return 400
+        assert resp.status_code == 500  # API should return 400
 
-    def test_update_booking(self, auth_token, created_booking):
+    def test_update_booking(self, authenticated_client, created_booking):
         updated = {
             "firstname": "Adam",
             "lastname": "Jonson",
@@ -55,18 +55,15 @@ class TestBookingCRUD:
             "additionalneeds": "None"
         }
 
-        resp = requests.put(f'{BASE_URL}/booking/{created_booking}',
-                            json=updated,
-                            headers={"Cookie": f"token={auth_token}"})
+        resp = authenticated_client.update_booking(created_booking, updated)
         body = resp.json()
         assert resp.status_code == 200
         assert body['firstname'] == "Adam"
         assert body['lastname'] == "Jonson"
         assert body['totalprice'] == 999
-        assert body['depositpaid'] == False
+        assert body['depositpaid'] is False
 
-
-    def test_put_is_idempotent(self, auth_token, created_booking):
+    def test_put_is_idempotent(self, authenticated_client, created_booking):
         updated = {
             "firstname": "Adam",
             "lastname": "Jonson",
@@ -79,29 +76,26 @@ class TestBookingCRUD:
             "additionalneeds": "None"
         }
 
-        resp1 = requests.put(f'{BASE_URL}/booking/{created_booking}', json=updated, headers={"Cookie": f"token={auth_token}"})
-        resp2 = requests.put(f'{BASE_URL}/booking/{created_booking}', json=updated, headers={"Cookie": f"token={auth_token}"})
-        resp3 = requests.put(f'{BASE_URL}/booking/{created_booking}', json=updated, headers={"Cookie": f"token={auth_token}"})
+        resp1 = authenticated_client.update_booking(created_booking, updated)
+        resp2 = authenticated_client.update_booking(created_booking, updated)
+        resp3 = authenticated_client.update_booking(created_booking, updated)
         assert resp1.status_code == resp2.status_code == resp3.status_code == 200
         assert resp1.json() == resp2.json() == resp3.json()
 
-    def test_partial_booking_update_patch(self, auth_token, created_booking):
-        resp = requests.patch(f'{BASE_URL}/booking/{created_booking}',
-                            headers={"Cookie": f"token={auth_token}"},
-                            json = {"firstname": "Adam"})
-
+    def test_partial_booking_update_patch(self, authenticated_client, created_booking):
+        resp = authenticated_client.partial_update_booking(created_booking, {"firstname": "Adam"})
         assert resp.status_code == 200
         assert resp.json()['firstname'] == "Adam"
 
-    def test_delete_booking(self, auth_token):
-        booking_id = create_test_booking()
-        resp = requests.delete(f'{BASE_URL}/booking/{booking_id}',
-                               headers={"Cookie": f"token={auth_token}"})
-        assert resp.status_code == 201  #API should return 204 status code
+    def test_delete_booking_with_authorized_client(self, authenticated_client):
+        booking_id = authenticated_client.create_booking(DEFAULT_BOOKING_PAYLOAD).json()['bookingid']
+        resp = authenticated_client.delete_booking(booking_id)
+        assert resp.status_code == 201  # API should return 204 status code
 
-        get_resp = requests.get(f'{BASE_URL}/booking/{booking_id}',
-                                headers={"Cookie": f"token={auth_token}"})
+        get_resp = authenticated_client.get_booking(booking_id)
         assert get_resp.status_code == 404
 
-        delete_resp = requests.delete(f'{BASE_URL}/booking/{booking_id}')
-        assert delete_resp.status_code == 403 #API should return 404 or 410 status code
+    def test_delete_booking_without_auth(self, api_client):
+        booking_id = api_client.create_booking(DEFAULT_BOOKING_PAYLOAD).json()['bookingid']
+        resp = api_client.delete_booking(booking_id, is_auth=False)
+        assert resp.status_code == 403

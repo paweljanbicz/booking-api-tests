@@ -28,6 +28,9 @@ class BookingClient:
     def get_booking(self, booking_id):
         return self.session.get(f'{self.base_url}/booking/{booking_id}')
 
+    def get_all_bookings(self):
+        return self.session.get(f'{self.base_url}/booking')
+
     def update_booking(self, booking_id, payload):
         return self.session.put(f'{self.base_url}/booking/{booking_id}',
                                 json=payload,
