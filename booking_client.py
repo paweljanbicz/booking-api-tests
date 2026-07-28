@@ -1,6 +1,10 @@
-import requests
+import os
 
-BASE_URL = "https://restful-booker.herokuapp.com"
+import requests
+from dotenv import load_dotenv
+
+load_dotenv()
+BASE_URL = os.getenv("BOOKING_API_BASE_URL", "https://restful-booker.herokuapp.com")
 
 
 class BookingClient:
@@ -9,7 +13,8 @@ class BookingClient:
         self.session = requests.Session()
         self._token = None
 
-    def authenticate(self, username="admin", password="password123"):
+    def authenticate(self, username=os.getenv("BOOKING_API_USERNAME", "admin"),
+                     password=os.getenv("BOOKING_API_PASSWORD", "password123")):
         resp = self.session.post(f'{self.base_url}/auth', json={
             "username": username,
             "password": password
