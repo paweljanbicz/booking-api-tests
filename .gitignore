@@ -1,5 +1,6 @@
 .idea/
-__pychace__/
+__pycache__/
 *.pyc
 .pytest_cache/
 venv/
+.env
