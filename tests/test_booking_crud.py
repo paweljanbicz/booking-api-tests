@@ -1,4 +1,5 @@
 import pytest
+from http import HTTPStatus
 from conftest import DEFAULT_BOOKING_PAYLOAD
 
 
@@ -6,7 +7,7 @@ class TestBookingCRUD:
     def test_get_booking_by_id(self, api_client, created_booking):
         resp = api_client.get_booking(created_booking)
 
-        assert resp.status_code == 200
+        assert resp.status_code == HTTPStatus.OK
         body = resp.json()
         assert body['firstname'] == "Eric"
         assert body['lastname'] == "Smith"
@@ -15,7 +16,7 @@ class TestBookingCRUD:
     def test_get_all_bookings(self, api_client):
         resp = api_client.get_all_bookings()
 
-        assert resp.status_code == 200
+        assert resp.status_code == HTTPStatus.OK
         bookings = resp.json()
         assert len(bookings) > 0
         assert isinstance(bookings, list)
@@ -23,11 +24,11 @@ class TestBookingCRUD:
 
     def test_get_not_existing_booking_return_404(self, api_client):
         resp = api_client.get_booking(999999999999999)
-        assert resp.status_code == 404
+        assert resp.status_code == HTTPStatus.NOT_FOUND
 
     def test_create_booking_returns_201(self, authenticated_client):
         resp = authenticated_client.create_booking(DEFAULT_BOOKING_PAYLOAD)
-        assert resp.status_code == 200  # API restful-booker returns 200 instead of 201
+        assert resp.status_code == HTTPStatus.OK  # API restful-booker returns 200 instead of 201
         body = resp.json()
         assert isinstance(body['bookingid'], int)
         assert len(body) > 0
@@ -40,7 +41,7 @@ class TestBookingCRUD:
         body = {k: v for k, v in DEFAULT_BOOKING_PAYLOAD.items() if k != missing_field}
         resp = api_client.create_booking(body)
 
-        assert resp.status_code == 500  # API should return 400
+        assert resp.status_code == HTTPStatus.INTERNAL_SERVER_ERROR  # API should return 400
 
     def test_update_booking(self, authenticated_client, created_booking):
         updated = {
@@ -57,7 +58,7 @@ class TestBookingCRUD:
 
         resp = authenticated_client.update_booking(created_booking, updated)
         body = resp.json()
-        assert resp.status_code == 200
+        assert resp.status_code == HTTPStatus.OK
         assert body['firstname'] == "Adam"
         assert body['lastname'] == "Jonson"
         assert body['totalprice'] == 999
@@ -79,23 +80,23 @@ class TestBookingCRUD:
         resp1 = authenticated_client.update_booking(created_booking, updated)
         resp2 = authenticated_client.update_booking(created_booking, updated)
         resp3 = authenticated_client.update_booking(created_booking, updated)
-        assert resp1.status_code == resp2.status_code == resp3.status_code == 200
+        assert resp1.status_code == resp2.status_code == resp3.status_code == HTTPStatus.OK
         assert resp1.json() == resp2.json() == resp3.json()
 
     def test_partial_booking_update_patch(self, authenticated_client, created_booking):
         resp = authenticated_client.partial_update_booking(created_booking, {"firstname": "Adam"})
-        assert resp.status_code == 200
+        assert resp.status_code == HTTPStatus.OK
         assert resp.json()['firstname'] == "Adam"
 
     def test_delete_booking_with_authorized_client(self, authenticated_client):
         booking_id = authenticated_client.create_booking(DEFAULT_BOOKING_PAYLOAD).json()['bookingid']
         resp = authenticated_client.delete_booking(booking_id)
-        assert resp.status_code == 201  # API should return 204 status code
+        assert resp.status_code == HTTPStatus.CREATED  # API should return 204 status code
 
         get_resp = authenticated_client.get_booking(booking_id)
-        assert get_resp.status_code == 404
+        assert get_resp.status_code == HTTPStatus.NOT_FOUND
 
     def test_delete_booking_without_auth(self, api_client):
         booking_id = api_client.create_booking(DEFAULT_BOOKING_PAYLOAD).json()['bookingid']
         resp = api_client.delete_booking(booking_id, is_auth=False)
-        assert resp.status_code == 403
+        assert resp.status_code == HTTPStatus.FORBIDDEN
