@@ -1,16 +1,18 @@
 ## Booking API Tests
 Automated API test suite for Restful-Booker — a deliberately buggy booking API used for API testing practice.
 
-###  Tests covers  
-- Authentication — token generation, invalid credentials  
-- CRUD operations — create, read, update, delete bookings  
-- Validation — response schemas, status codes, error handling  
+### Tests Coverage  
+- CRUD operations — create, read, update, delete bookings
+  - smoke: core create/read/update flow
+  - negative: missing fields, non-existent booking, unauthorized delete
+  - regression: idempotent update, partial update, authorized delete, gathering all bookings
   
 
 ### Tech stack  
 - Python 3.x  
 - pytest  
 - requests
+- python-dotenv
 
 
 ### How to run
@@ -18,15 +20,17 @@ Automated API test suite for Restful-Booker — a deliberately buggy booking API
 git clone https://github.com/paweljanbicz/booking-api-tests.git
 cd booking-api-tests
 pip install -r requirements.txt
-pytest
+copy .env.example .env
+pytest              # full suite
+pytest -m smoke     # quick smoke check
 ```
 
 ### Project structure
 ``` booking-api-tests/
 ├── tests/
-│   ├── test_auth.py
 │   ├── test_booking_crud.py
-│   ├── test_booking_filter.py
+├── .env.example
+├── booking_client.py
 ├── conftest.py
 ├── pytest.ini
 ├── requirements.txt
