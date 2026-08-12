@@ -46,21 +46,20 @@ class BookingClient:
         """Fetch all bookings."""
         return self.session.get(f'{self.base_url}/booking')
 
-    def update_booking(self, booking_id: int, payload: dict[str, Any]) -> requests.Response:
+    def update_booking(self, booking_id: int, payload: dict[str, Any], is_auth: bool = True) -> requests.Response:
         """Update a single booking by its id and with payload."""
         return self.session.put(f'{self.base_url}/booking/{booking_id}',
                                 json=payload,
-                                headers=self._auth_headers())
+                                headers=self._auth_headers() if is_auth else {})
 
-    def partial_update_booking(self, booking_id: int, payload: dict[str, Any]) -> requests.Response:
+    def partial_update_booking(self, booking_id: int, payload: dict[str, Any], is_auth: bool = True) -> requests.Response:
         """Partially update a single booking by its id and with payload."""
         return self.session.patch(f'{self.base_url}/booking/{booking_id}',
                                   json=payload,
-                                  headers=self._auth_headers())
+                                  headers=self._auth_headers() if is_auth else {})
 
     def delete_booking(self, booking_id: int, is_auth: bool = True) -> requests.Response:
         """Delete a single booking by its id."""
-        headers = self._auth_headers() if is_auth else {}
         return self.session.delete(f'{self.base_url}/booking/{booking_id}',
-                                   headers=headers)
+                                   headers=self._auth_headers() if is_auth else {})
 

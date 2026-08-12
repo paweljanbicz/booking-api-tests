@@ -70,6 +70,25 @@ class TestBookingCRUD:
         assert body['totalprice'] == 999
         assert body['depositpaid'] is False
 
+    @pytest.mark.negative
+    def test_update_booking_without_auth(self, api_client, authenticated_client):
+        booking_id = api_client.create_booking(DEFAULT_BOOKING_PAYLOAD).json()['bookingid']
+        updated = {
+            "firstname": "Adam",
+            "lastname": "Jonson",
+            "totalprice": 999,
+            "depositpaid": False,
+            "bookingdates": {
+                "checkin": "2026-02-15",
+                "checkout": "2027-01-01"
+            },
+            "additionalneeds": "None"
+        }
+
+        resp = api_client.update_booking(booking_id, updated, is_auth=False)
+        assert resp.status_code == HTTPStatus.FORBIDDEN
+        authenticated_client.delete_booking(booking_id)
+
     @pytest.mark.regression
     def test_put_is_idempotent(self, authenticated_client, created_booking):
         updated = {
