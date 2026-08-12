@@ -131,6 +131,13 @@ class TestBookingCRUD:
         assert resp.status_code == HTTPStatus.OK
         assert resp.json()['firstname'] == "Adam"
 
+    @pytest.mark.negative
+    def test_partial_booking_update_patch_without_auth(self, api_client, authenticated_client):
+        booking_id = api_client.create_booking(DEFAULT_BOOKING_PAYLOAD).json()['bookingid']
+        resp = api_client.partial_update_booking(booking_id, {"firstname": "Adam"}, is_auth=False)
+        assert resp.status_code == HTTPStatus.FORBIDDEN
+        authenticated_client.delete_booking(booking_id)
+
     @pytest.mark.regression
     def test_delete_booking_with_authorized_client(self, authenticated_client):
         booking_id = authenticated_client.create_booking(DEFAULT_BOOKING_PAYLOAD).json()['bookingid']
@@ -145,3 +152,8 @@ class TestBookingCRUD:
         booking_id = api_client.create_booking(DEFAULT_BOOKING_PAYLOAD).json()['bookingid']
         resp = api_client.delete_booking(booking_id, is_auth=False)
         assert resp.status_code == HTTPStatus.FORBIDDEN
+
+    @pytest.mark.negative
+    def test_delete_non_existing_booking_returns_405(self, authenticated_client):
+        resp = authenticated_client.delete_booking(999999999999999)
+        assert resp.status_code == HTTPStatus.METHOD_NOT_ALLOWED    #API should return 404 for a non-existent resource
