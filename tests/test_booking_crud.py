@@ -89,6 +89,22 @@ class TestBookingCRUD:
         assert resp.status_code == HTTPStatus.FORBIDDEN
         authenticated_client.delete_booking(booking_id)
 
+    @pytest.mark.negative
+    def test_update_non_existing_booking_returns_405(self, authenticated_client):
+        updated = {
+            "firstname": "Adam",
+            "lastname": "Jonson",
+            "totalprice": 999,
+            "depositpaid": False,
+            "bookingdates": {
+                "checkin": "2026-02-15",
+                "checkout": "2027-01-01"
+            },
+            "additionalneeds": "None"
+        }
+        resp = authenticated_client.update_booking(999999999999999, updated)
+        assert resp.status_code == HTTPStatus.METHOD_NOT_ALLOWED    #API should return 404 for a non-existent resource
+
     @pytest.mark.regression
     def test_put_is_idempotent(self, authenticated_client, created_booking):
         updated = {
