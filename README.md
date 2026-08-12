@@ -1,7 +1,6 @@
 ## Booking API Tests
-Automated API test suite for Restful-Booker — a deliberately buggy booking API used for API testing practice.
-
-### Tests Coverage  
+Automated API test suite for [Restful-Booker](https://restful-booker.herokuapp.com/apidoc/index.html) — a deliberately buggy booking API used for API testing practice.
+### Tests Coverage    
 - CRUD operations — create, read, update, delete bookings
   - smoke: core create/read/update flow
   - negative: missing fields, non-existent booking, unauthorized delete
