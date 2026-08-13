@@ -1,3 +1,4 @@
+![API Tests](https://github.com/paweljanbicz/booking-api-tests/actions/workflows/tests.yml/badge.svg)
 ## Booking API Tests
 Automated API test suite for [Restful-Booker](https://restful-booker.herokuapp.com/apidoc/index.html) — a deliberately buggy booking API used for API testing practice.
 ### Tests Coverage    
