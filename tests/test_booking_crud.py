@@ -95,6 +95,15 @@ class TestBookingCRUD:
 
         assert resp.status_code == HTTPStatus.INTERNAL_SERVER_ERROR  # API should return 400
 
+    @pytest.mark.negative
+    def test_create_booking_with_invalid_totalprice_string_sets_null(self, authenticated_client):
+        invalid_payload = {**DEFAULT_BOOKING_PAYLOAD, 'totalprice': 'two hundred'}
+        resp = authenticated_client.create_booking(invalid_payload)
+        assert resp.status_code == HTTPStatus.OK
+        assert resp.json()['booking']['totalprice'] is None
+
+        authenticated_client.delete_booking(resp.json()['bookingid'])
+
     @pytest.mark.smoke
     def test_update_booking(self, authenticated_client, created_booking):
         updated = {
