@@ -77,7 +77,7 @@ class TestBookingCRUD:
         authenticated_client.delete_booking(booking_id)
 
     @pytest.mark.smoke
-    def test_create_booking_returns_201(self, authenticated_client):
+    def test_create_booking_returns_200(self, authenticated_client):
         resp = authenticated_client.create_booking(DEFAULT_BOOKING_PAYLOAD)
         assert resp.status_code == HTTPStatus.OK  # API restful-booker returns 200 instead of 201
         body = resp.json()
