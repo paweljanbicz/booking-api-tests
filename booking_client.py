@@ -46,6 +46,10 @@ class BookingClient:
         """Fetch all bookings."""
         return self.session.get(f'{self.base_url}/booking')
 
+    def get_booking_by_filters(self, **filters: Any) -> requests.Response:
+        """Fetch bookings by filters, e.g. firstname, lastname, checkin, checkout."""
+        return self.session.get(f'{self.base_url}/booking', params=filters)
+
     def update_booking(self, booking_id: int, payload: dict[str, Any], is_auth: bool = True) -> requests.Response:
         """Update a single booking by its id and with payload."""
         return self.session.put(f'{self.base_url}/booking/{booking_id}',

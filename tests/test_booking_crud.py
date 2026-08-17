@@ -1,4 +1,5 @@
 import pytest
+import time
 from http import HTTPStatus
 from conftest import DEFAULT_BOOKING_PAYLOAD
 
@@ -28,6 +29,52 @@ class TestBookingCRUD:
     def test_get_not_existing_booking_return_404(self, api_client):
         resp = api_client.get_booking(999999999999999)
         assert resp.status_code == HTTPStatus.NOT_FOUND
+
+    @pytest.mark.regression
+    def test_get_booking_by_filters(self, authenticated_client):
+        unique_firstname = f"Eric{int(time.time())}"
+        unique_lastname = f"Smith{int(time.time())}"
+        checkout = "2025-07-12"
+        booking_id = authenticated_client.create_booking({
+            "firstname": unique_firstname,
+            "lastname": unique_lastname,
+            "totalprice": 351,
+            "depositpaid": False,
+            "bookingdates": {
+                "checkin": "2025-02-15",
+                "checkout": checkout,
+            },
+            "additionalneeds": "Breakfast",
+        }).json()['bookingid']
+
+        resp = authenticated_client.get_booking_by_filters(
+            firstname=unique_firstname, lastname=unique_lastname, checkin="2025-02-14", checkout=checkout)
+        booking_ids = [item['bookingid'] for item in resp.json()]
+        assert booking_id in booking_ids
+        authenticated_client.delete_booking(booking_id)
+
+    @pytest.mark.negative
+    def test_get_booking_by_checkin_filter_returns_empty_for_equal_date(self, authenticated_client):
+        unique_firstname = f"Mark{int(time.time())}"
+        unique_lastname = f"Newman{int(time.time())}"
+        checkin = "2026-02-15"
+        checkout = "2026-07-12"
+        booking_id = authenticated_client.create_booking({
+            "firstname": unique_firstname,
+            "lastname": unique_lastname,
+            "totalprice": 351,
+            "depositpaid": False,
+            "bookingdates": {
+                "checkin": checkin,
+                "checkout": checkout,
+            },
+            "additionalneeds": "Breakfast",
+        }).json()['bookingid']
+
+        resp = authenticated_client.get_booking_by_filters(
+            firstname=unique_firstname, lastname=unique_lastname, checkin=checkin, checkout=checkout)
+        assert resp.json() == []
+        authenticated_client.delete_booking(booking_id)
 
     @pytest.mark.smoke
     def test_create_booking_returns_201(self, authenticated_client):
@@ -103,7 +150,7 @@ class TestBookingCRUD:
             "additionalneeds": "None"
         }
         resp = authenticated_client.update_booking(999999999999999, updated)
-        assert resp.status_code == HTTPStatus.METHOD_NOT_ALLOWED    #API should return 404 for a non-existent resource
+        assert resp.status_code == HTTPStatus.METHOD_NOT_ALLOWED  #API should return 404 for a non-existent resource
 
     @pytest.mark.regression
     def test_put_is_idempotent(self, authenticated_client, created_booking):
@@ -156,4 +203,4 @@ class TestBookingCRUD:
     @pytest.mark.negative
     def test_delete_non_existing_booking_returns_405(self, authenticated_client):
         resp = authenticated_client.delete_booking(999999999999999)
-        assert resp.status_code == HTTPStatus.METHOD_NOT_ALLOWED    #API should return 404 for a non-existent resource
+        assert resp.status_code == HTTPStatus.METHOD_NOT_ALLOWED  #API should return 404 for a non-existent resource
