@@ -11,8 +11,8 @@ class TestBookingCRUD:
 
         assert resp.status_code == HTTPStatus.OK
         body = resp.json()
-        assert body['firstname'] == "Eric"
-        assert body['lastname'] == "Smith"
+        assert body['firstname'] == 'Eric'
+        assert body['lastname'] == 'Smith'
         assert body['totalprice'] == 351
 
     @pytest.mark.regression
@@ -32,54 +32,52 @@ class TestBookingCRUD:
 
     @pytest.mark.regression
     def test_get_booking_by_filters(self, authenticated_client):
-        unique_firstname = f"Eric{int(time.time())}"
-        unique_lastname = f"Smith{int(time.time())}"
-        checkout = "2025-07-12"
-        booking_id = authenticated_client.create_booking({
-            "firstname": unique_firstname,
-            "lastname": unique_lastname,
-            "totalprice": 351,
-            "depositpaid": False,
-            "bookingdates": {
-                "checkin": "2025-02-15",
-                "checkout": checkout,
-            },
-            "additionalneeds": "Breakfast",
-        }).json()['bookingid']
-
+        unique_firstname = f'Eric{int(time.time())}'
+        unique_lastname = f'Smith{int(time.time())}'
+        check_in = '2025-02-15'
+        check_out = '2025-07-12'
+        payload = {**DEFAULT_BOOKING_PAYLOAD,
+                   'firstname': unique_firstname,
+                   'lastname': unique_lastname,
+                   'bookingdates': {
+                       'checkin': check_in,
+                       'checkout': check_out}
+                   }
+        booking_id = authenticated_client.create_booking(payload).json()['bookingid']
         resp = authenticated_client.get_booking_by_filters(
-            firstname=unique_firstname, lastname=unique_lastname, checkin="2025-02-14", checkout=checkout)
+            firstname=unique_firstname, lastname=unique_lastname, checkin='2025-02-14', checkout=check_out)
         booking_ids = [item['bookingid'] for item in resp.json()]
+
         assert booking_id in booking_ids
+
         authenticated_client.delete_booking(booking_id)
 
     @pytest.mark.negative
     def test_get_booking_by_checkin_filter_returns_empty_for_equal_date(self, authenticated_client):
-        unique_firstname = f"Mark{int(time.time())}"
-        unique_lastname = f"Newman{int(time.time())}"
-        checkin = "2026-02-15"
-        checkout = "2026-07-12"
-        booking_id = authenticated_client.create_booking({
-            "firstname": unique_firstname,
-            "lastname": unique_lastname,
-            "totalprice": 351,
-            "depositpaid": False,
-            "bookingdates": {
-                "checkin": checkin,
-                "checkout": checkout,
-            },
-            "additionalneeds": "Breakfast",
-        }).json()['bookingid']
+        unique_firstname = f'Mark{int(time.time())}'
+        unique_lastname = f'Newman{int(time.time())}'
+        check_in = '2026-02-15'
+        check_out = '2026-07-12'
+        payload = {**DEFAULT_BOOKING_PAYLOAD,
+                   'firstname': unique_firstname,
+                   'lastname': unique_lastname,
+                   'bookingdates': {
+                       'checkin': check_in,
+                       'checkout': check_out}
+                   }
+        booking_id = authenticated_client.create_booking(payload).json()['bookingid']
 
         resp = authenticated_client.get_booking_by_filters(
-            firstname=unique_firstname, lastname=unique_lastname, checkin=checkin, checkout=checkout)
+            firstname=unique_firstname, lastname=unique_lastname, checkin=check_in, checkout=check_out)
+
         assert resp.json() == []
+
         authenticated_client.delete_booking(booking_id)
 
     @pytest.mark.smoke
     def test_create_booking_returns_200(self, authenticated_client):
         resp = authenticated_client.create_booking(DEFAULT_BOOKING_PAYLOAD)
-        assert resp.status_code == HTTPStatus.OK  # API restful-booker returns 200 instead of 201
+        assert resp.status_code == HTTPStatus.OK  # BUG: should return 201 for a created resource
         body = resp.json()
         assert isinstance(body['bookingid'], int)
         assert len(body) > 0
@@ -109,7 +107,7 @@ class TestBookingCRUD:
         check_in = '2026-04-01'
         check_out = '2026-03-01'
         payload = {**DEFAULT_BOOKING_PAYLOAD,
-             "bookingdates":
+             'bookingdates':
                  {'checkin': check_in,
                   'checkout': check_out}
                    }
@@ -127,22 +125,22 @@ class TestBookingCRUD:
     @pytest.mark.smoke
     def test_update_booking(self, authenticated_client, created_booking):
         updated = {
-            "firstname": "Adam",
-            "lastname": "Jonson",
-            "totalprice": 999,
-            "depositpaid": False,
-            "bookingdates": {
-                "checkin": "2026-02-15",
-                "checkout": "2027-01-01"
+            'firstname': 'Adam',
+            'lastname': 'Jonson',
+            'totalprice': 999,
+            'depositpaid': False,
+            'bookingdates': {
+                'checkin': '2026-02-15',
+                'checkout': '2027-01-01'
             },
-            "additionalneeds": "None"
+            'additionalneeds': 'None'
         }
 
         resp = authenticated_client.update_booking(created_booking, updated)
         body = resp.json()
         assert resp.status_code == HTTPStatus.OK
-        assert body['firstname'] == "Adam"
-        assert body['lastname'] == "Jonson"
+        assert body['firstname'] == 'Adam'
+        assert body['lastname'] == 'Jonson'
         assert body['totalprice'] == 999
         assert body['depositpaid'] is False
 
@@ -150,15 +148,15 @@ class TestBookingCRUD:
     def test_update_booking_without_auth(self, api_client, authenticated_client):
         booking_id = api_client.create_booking(DEFAULT_BOOKING_PAYLOAD).json()['bookingid']
         updated = {
-            "firstname": "Adam",
-            "lastname": "Jonson",
-            "totalprice": 999,
-            "depositpaid": False,
-            "bookingdates": {
-                "checkin": "2026-02-15",
-                "checkout": "2027-01-01"
+            'firstname': 'Adam',
+            'lastname': 'Jonson',
+            'totalprice': 999,
+            'depositpaid': False,
+            'bookingdates': {
+                'checkin': '2026-02-15',
+                'checkout': '2027-01-01'
             },
-            "additionalneeds": "None"
+            'additionalneeds': 'None'
         }
 
         resp = api_client.update_booking(booking_id, updated, is_auth=False)
@@ -168,31 +166,31 @@ class TestBookingCRUD:
     @pytest.mark.negative
     def test_update_non_existing_booking_returns_405(self, authenticated_client):
         updated = {
-            "firstname": "Adam",
-            "lastname": "Jonson",
-            "totalprice": 999,
-            "depositpaid": False,
-            "bookingdates": {
-                "checkin": "2026-02-15",
-                "checkout": "2027-01-01"
+            'firstname': 'Adam',
+            'lastname': 'Jonson',
+            'totalprice': 999,
+            'depositpaid': False,
+            'bookingdates': {
+                'checkin': '2026-02-15',
+                'checkout': '2027-01-01'
             },
-            "additionalneeds": "None"
+            'additionalneeds': 'None'
         }
         resp = authenticated_client.update_booking(999999999999999, updated)
-        assert resp.status_code == HTTPStatus.METHOD_NOT_ALLOWED  #API should return 404 for a non-existent resource
+        assert resp.status_code == HTTPStatus.METHOD_NOT_ALLOWED  # BUG: should return 404 for a non-existent resource
 
     @pytest.mark.regression
     def test_put_is_idempotent(self, authenticated_client, created_booking):
         updated = {
-            "firstname": "Adam",
-            "lastname": "Jonson",
-            "totalprice": 999,
-            "depositpaid": False,
-            "bookingdates": {
-                "checkin": "2026-02-15",
-                "checkout": "2027-01-01"
+            'firstname': 'Adam',
+            'lastname': 'Jonson',
+            'totalprice': 999,
+            'depositpaid': False,
+            'bookingdates': {
+                'checkin': '2026-02-15',
+                'checkout': '2027-01-01'
             },
-            "additionalneeds": "None"
+            'additionalneeds': 'None'
         }
 
         resp1 = authenticated_client.update_booking(created_booking, updated)
@@ -203,14 +201,14 @@ class TestBookingCRUD:
 
     @pytest.mark.regression
     def test_partial_booking_update_patch(self, authenticated_client, created_booking):
-        resp = authenticated_client.partial_update_booking(created_booking, {"firstname": "Adam"})
+        resp = authenticated_client.partial_update_booking(created_booking, {'firstname': 'Adam'})
         assert resp.status_code == HTTPStatus.OK
-        assert resp.json()['firstname'] == "Adam"
+        assert resp.json()['firstname'] == 'Adam'
 
     @pytest.mark.negative
     def test_partial_booking_update_patch_without_auth(self, api_client, authenticated_client):
         booking_id = api_client.create_booking(DEFAULT_BOOKING_PAYLOAD).json()['bookingid']
-        resp = api_client.partial_update_booking(booking_id, {"firstname": "Adam"}, is_auth=False)
+        resp = api_client.partial_update_booking(booking_id, {'firstname': 'Adam'}, is_auth=False)
         assert resp.status_code == HTTPStatus.FORBIDDEN
         authenticated_client.delete_booking(booking_id)
 
