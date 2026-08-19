@@ -104,6 +104,26 @@ class TestBookingCRUD:
 
         authenticated_client.delete_booking(resp.json()['bookingid'])
 
+    @pytest.mark.negative
+    def test_create_booking_with_checkin_after_checkout_is_accepted(self, authenticated_client):
+        check_in = '2026-04-01'
+        check_out = '2026-03-01'
+        payload = {**DEFAULT_BOOKING_PAYLOAD,
+             "bookingdates":
+                 {'checkin': check_in,
+                  'checkout': check_out}
+                   }
+
+        resp = authenticated_client.create_booking(payload)
+        booking_id = resp.json()['bookingid']
+        booking_dates = resp.json()['booking']['bookingdates']
+
+        assert resp.status_code == HTTPStatus.OK    # BUG: should return 400 BAD_REQUEST
+        assert booking_dates['checkin'] == check_in
+        assert booking_dates['checkout'] == check_out
+
+        authenticated_client.delete_booking(booking_id)
+
     @pytest.mark.smoke
     def test_update_booking(self, authenticated_client, created_booking):
         updated = {
