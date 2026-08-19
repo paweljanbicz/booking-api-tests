@@ -86,12 +86,12 @@ class TestBookingCRUD:
 
     @pytest.mark.negative
     @pytest.mark.parametrize('missing_field',
-                             ["firstname", "lastname", "totalprice", "depositpaid"])
+                             ['firstname', 'lastname', 'totalprice', 'depositpaid'])
     def test_create_booking_missing_requirements_returns_500(self, api_client, missing_field):
         body = {k: v for k, v in DEFAULT_BOOKING_PAYLOAD.items() if k != missing_field}
         resp = api_client.create_booking(body)
 
-        assert resp.status_code == HTTPStatus.INTERNAL_SERVER_ERROR  # API should return 400
+        assert resp.status_code == HTTPStatus.INTERNAL_SERVER_ERROR  # BUG: should return 400 for invalid input
 
     @pytest.mark.negative
     def test_create_booking_with_invalid_totalprice_string_sets_null(self, authenticated_client):
@@ -216,7 +216,7 @@ class TestBookingCRUD:
     def test_delete_booking_with_authorized_client(self, authenticated_client):
         booking_id = authenticated_client.create_booking(DEFAULT_BOOKING_PAYLOAD).json()['bookingid']
         resp = authenticated_client.delete_booking(booking_id)
-        assert resp.status_code == HTTPStatus.CREATED  # API should return 204 status code
+        assert resp.status_code == HTTPStatus.CREATED  # BUG: should return 204 for a successful delete
 
         get_resp = authenticated_client.get_booking(booking_id)
         assert get_resp.status_code == HTTPStatus.NOT_FOUND
@@ -230,4 +230,4 @@ class TestBookingCRUD:
     @pytest.mark.negative
     def test_delete_non_existing_booking_returns_405(self, authenticated_client):
         resp = authenticated_client.delete_booking(999999999999999)
-        assert resp.status_code == HTTPStatus.METHOD_NOT_ALLOWED  #API should return 404 for a non-existent resource
+        assert resp.status_code == HTTPStatus.METHOD_NOT_ALLOWED  # BUG: should return 404 for a non-existent resource
